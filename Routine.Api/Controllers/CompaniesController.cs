@@ -77,6 +77,7 @@ namespace Routine.Api.Controllers
         [HttpPost()]
         public async Task<ActionResult<CompanyDto>> CreateCompany(CompanyAddDto company) {
            
+            //测试一下git
             var entity = mapper.Map<Company>(company);
              companyRepository.AddCompany(entity);
             await companyRepository.SaveAsync();
