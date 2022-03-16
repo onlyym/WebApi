@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Serialization;
 using Routine.Api.Data;
 using Routine.Api.Services;
 using System;
@@ -30,13 +31,39 @@ namespace Routine.Api
         //注册服务
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(setup => {
+            services.AddControllers(setup =>
+            {
                 setup.ReturnHttpNotAcceptable = true;
                 //在注册Controller的时候配置默认返回格式  3.0之前这样写
                 // setup.OutputFormatters.Insert(0,new XmlDataContractSerializerOutputFormatter());
-            }).AddXmlDataContractSerializerFormatters();
+            })
+                //默认格式取决于序列化工具的添加顺序
+                .AddNewtonsoftJson(options =>  //第三方 JSON 序列化和反序列化工具（会替换掉原本默认的 JSON 序列化工具）（视频P32）
+                {
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                })
+                .AddXmlDataContractSerializerFormatters()
             //3.0之后只需要在AddControllers之后  使用AddXmlDataContractSerializerFormatters方法，输入输出都会添加xml支持
-
+            .ConfigureApiBehaviorOptions(setup =>
+            {
+                //创建一个委托 context，在 IsValid == false 时执行
+                setup.InvalidModelStateResponseFactory = context =>
+                {
+                    var problemDetail = new ValidationProblemDetails(context.ModelState)
+                    {
+                        Type = "http://www.baidu.com",
+                        Title = "有错误，请百度",
+                        Status = StatusCodes.Status422UnprocessableEntity,
+                        Detail = "请看详细信息",
+                        Instance = context.HttpContext.Request.Path
+                    };
+                    problemDetail.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
+                    return new UnprocessableEntityObjectResult(problemDetail)
+                    {
+                        ContentTypes = { "application/problem+json" }
+                    };
+                };
+            });
             //使用 AutoMapper，扫描当前应用域的所有 Assemblies 寻找 AutoMapper 的配置文件（视频P12）
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

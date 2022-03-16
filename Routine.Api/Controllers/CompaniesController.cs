@@ -74,7 +74,7 @@ namespace Routine.Api.Controllers
             return Ok(companyDto);
 
         }
-        [HttpPost()]
+        [HttpPost]
         public async Task<ActionResult<CompanyDto>> CreateCompany(CompanyAddDto company) {
            
             //测试一下git
@@ -85,6 +85,14 @@ namespace Routine.Api.Controllers
             return CreatedAtRoute(nameof(GetCompanyById), new { companyId = returnDto.Id }, returnDto);
         }
        
+        [HttpOptions]
+        public  IActionResult GetCompaniesOptions()
+        {
+
+            Response.Headers.Add("Allow", "DELETE,GET,PATCH,PUT,OPTIONS");
+            return Ok();
+
+        }
 
     }
 }

@@ -1,18 +1,18 @@
 ﻿using Routine.Api.Entities;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Routine.Api.ValidationAttributes;
 
 namespace Routine.Api.Models
 {
     /// <summary>
     /// Create Employee 使用的Dto
     /// </summary>
-    public class EmployeeAddDto
+    [EmployeeNoMustDifferentFromFirstName(ErrorMessage = "员工编号必须和名不一样")]
+    public class EmployeeAddDto: EmployeeAddOrUpdateDto
     {
-       
-        public string EmployeeNo { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public Gender Gender { get; set; }
-        public DateTime DateOfBirth { get; set; }
+
+        
     }
 }
